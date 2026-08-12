@@ -1,0 +1,153 @@
+name: Import CherryRule 0.1.0
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/bootstrap.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    name: Reconstruct, validate, and publish repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out bootstrap commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruct and verify source archive
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          tmp="$(mktemp -d)"
+          export CHERRY_TMP="$tmp"
+
+          python3 <<'PY'
+          import base64
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+
+          repository = os.environ["GITHUB_REPOSITORY"]
+          token = os.environ["GITHUB_TOKEN"]
+          destination = Path(os.environ["CHERRY_TMP"]) / "CherryRule-source.tar.xz"
+          expected_sha256 = "c02bebfc40e3e1f42f4648714c265d64e0974dadc63800d56a7c63604ef6fe93"
+          expected_size = 140764
+
+          blobs = [
+              "53315a5e3bf22f19cc0f2e2975f78c5cc8a41646",
+              "77258be863feba52e958b9b31f83ac229cb75c38",
+              "95a9bad6882ace123bfdea1ff413ca45ee173c40",
+              "f42d1de9df061331a0cc73cb722c8c41c91fcc80",
+              "01aff7c5563ccbf6f4d41572b87994331fa2f9b0",
+              "4770a128ab06ced49e42717d585f758cbd5f8e75",
+              "95ce119fd291a360f654ba00e280d72c5046bf1c",
+              "a042dc883c55f0d78313f813026a6d0c05c40c37",
+              "ff2bd3e236a4dd3046f11fe42f589b90f2bb82c2",
+              "f8732a70f2d681932cc923a208ff21972d336084",
+              "baeb1e9765d1235d2d862a2496b98612af2c2e28",
+              "5963b0905821fdad97404a5f133b6befafbd982e",
+              "7c7d3a66e33ebdcf33988b67bd6105ccaa3bf81c",
+              "58344f04f7b7b2cd6d34c0db98efe75dd7c0d195",
+              "0fb3c3faef7000adb180a5228b2c0ae1945c0b03",
+              "9fd45b9b3770208e51ee738e8d973bda288c2344",
+              "6346bb57e425b18e90af836b6f7d462b98ae6f3b",
+              "075794f49bedf5e6b23ed939ea24b9c61d95103c",
+              "152d1b792316ab5ba55409f2b3e42555b8be9692",
+          ]
+
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization": f"Bearer {token}",
+              "X-GitHub-Api-Version": "2022-11-28",
+              "User-Agent": "CherryRule-bootstrap",
+          }
+
+          with destination.open("wb") as output:
+              for index, sha in enumerate(blobs):
+                  url = f"https://api.github.com/repos/{repository}/git/blobs/{sha}"
+                  request = Request(url, headers=headers)
+                  with urlopen(request, timeout=30) as response:
+                      payload = json.load(response)
+                  output.write(base64.b64decode(payload["content"]))
+                  print(f"fetched {index + 1:02d}/{len(blobs):02d} {sha}")
+
+          actual_size = destination.stat().st_size
+          actual_sha256 = hashlib.sha256(destination.read_bytes()).hexdigest()
+          print(f"archive bytes={actual_size} sha256={actual_sha256}")
+
+          if actual_size != expected_size:
+              raise SystemExit(f"archive size mismatch: expected {expected_size}, got {actual_size}")
+          if actual_sha256 != expected_sha256:
+              raise SystemExit(
+                  f"archive SHA-256 mismatch: expected {expected_sha256}, got {actual_sha256}"
+              )
+          PY
+
+          mkdir -p "$tmp/extracted"
+          tar -xJf "$tmp/CherryRule-source.tar.xz" -C "$tmp/extracted"
+          test -f "$tmp/extracted/repo/go.mod"
+          test -f "$tmp/extracted/repo/Makefile"
+
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf -- {} +
+          cp -a "$tmp/extracted/repo/." .
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Validate rules and generate distributable catalogs
+        shell: bash
+        run: |
+          set -euo pipefail
+          make check
+
+          stats="$(go run ./cmd/cherryrule stats)"
+          printf '%s\n' "$stats"
+          grep -Fxq "rule packs: 23" <<<"$stats"
+          grep -Fxq "rules: 480" <<<"$stats"
+          grep -Fxq "policy packs: 8" <<<"$stats"
+          grep -Fxq "policies: 185" <<<"$stats"
+          grep -Fxq "profiles: 8" <<<"$stats"
+          grep -Fxq "CherryWAF v1 compatible: 450" <<<"$stats"
+
+          file_count="$(find . -path ./.git -prune -o -type f -print | wc -l | tr -d ' ')"
+          test "$file_count" -eq 148
+
+          {
+            echo "## CherryRule 0.1.0 import"
+            echo
+            echo '```text'
+            printf '%s\n' "$stats"
+            echo "files: $file_count"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish validated repository to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && {
+            echo "No repository changes were produced" >&2
+            exit 1
+          }
+          git commit -m "feat: import CherryRule 0.1.0"
+          git push origin HEAD:main
