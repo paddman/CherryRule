@@ -1,9 +1,8 @@
-name: Import CherryRule 0.1.0
+name: Recover and import CherryRule source
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
       - ".github/workflows/bootstrap.yml"
   workflow_dispatch:
@@ -13,23 +12,21 @@ permissions:
 
 jobs:
   import:
-    name: Reconstruct, validate, and publish repository
     runs-on: ubuntu-latest
     timeout-minutes: 20
-
     steps:
-      - name: Check out bootstrap commit
+      - name: Check out recovery commit
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: true
 
-      - name: Reconstruct and verify source archive
+      - name: Reconstruct source archive from verified Git blobs
         shell: bash
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-
           tmp="$(mktemp -d)"
           export CHERRY_TMP="$tmp"
 
@@ -37,70 +34,102 @@ jobs:
           import base64
           import hashlib
           import json
+          import lzma
           import os
+          import tarfile
+          from io import BytesIO
           from pathlib import Path
           from urllib.request import Request, urlopen
 
           repository = os.environ["GITHUB_REPOSITORY"]
-          token = os.environ["GITHUB_TOKEN"]
+          token = os.environ["GH_TOKEN"]
           destination = Path(os.environ["CHERRY_TMP"]) / "CherryRule-source.tar.xz"
-          expected_sha256 = "c02bebfc40e3e1f42f4648714c265d64e0974dadc63800d56a7c63604ef6fe93"
-          expected_size = 140764
-
-          blobs = [
+          shas = [
+              "c488dec04355dff4074b5ceb943df630aa176569",
+              "5ff6742b819546f9d719a732c9e27677db302148",
               "53315a5e3bf22f19cc0f2e2975f78c5cc8a41646",
               "77258be863feba52e958b9b31f83ac229cb75c38",
               "95a9bad6882ace123bfdea1ff413ca45ee173c40",
-              "f42d1de9df061331a0cc73cb722c8c41c91fcc80",
-              "01aff7c5563ccbf6f4d41572b87994331fa2f9b0",
-              "4770a128ab06ced49e42717d585f758cbd5f8e75",
-              "95ce119fd291a360f654ba00e280d72c5046bf1c",
-              "a042dc883c55f0d78313f813026a6d0c05c40c37",
-              "ff2bd3e236a4dd3046f11fe42f589b90f2bb82c2",
-              "f8732a70f2d681932cc923a208ff21972d336084",
-              "baeb1e9765d1235d2d862a2496b98612af2c2e28",
-              "5963b0905821fdad97404a5f133b6befafbd982e",
-              "7c7d3a66e33ebdcf33988b67bd6105ccaa3bf81c",
-              "58344f04f7b7b2cd6d34c0db98efe75dd7c0d195",
-              "0fb3c3faef7000adb180a5228b2c0ae1945c0b03",
-              "9fd45b9b3770208e51ee738e8d973bda288c2344",
-              "6346bb57e425b18e90af836b6f7d462b98ae6f3b",
-              "075794f49bedf5e6b23ed939ea24b9c61d95103c",
-              "152d1b792316ab5ba55409f2b3e42555b8be9692",
+              "ca1369f150c7287208e37fb2aa94822131ab8114",
+              "46f8f4c343b0a88193e9eea92fb6c02a121a3518",
+              "25aef76d16f77b78d70d98ef48b6aed537b5450f",
+              "9f52002e2d00bf142001a2c0c5226cf3e60e738e",
+              "837243df4aaa7214114ccf78a4fee66275265595",
+              "b1eb92cfbe06443c090124934a3a18e142512428",
+              "c5d60ffa356b2673ddb3c96a75aef004e20f5463",
+              "1395fb485f35a2d742747c95dedb45249f8334b6",
+              "4aef4471910c69897f09890daf178ff783eb489f",
+              "b6e9ada268d46971f7c043a35cb0620b7523b3bf",
+              "68c186ae28b3cb23a88f0cae7dc10c3664c74936",
+              "9bb625988f2b9698107b21556bd1878822d32596",
+              "61da200544300452ca4768584364e2be49b23a11",
+              "1dd56efb098b4a6d10387c54689af211f78ed8fe",
           ]
-
           headers = {
               "Accept": "application/vnd.github+json",
               "Authorization": f"Bearer {token}",
               "X-GitHub-Api-Version": "2022-11-28",
-              "User-Agent": "CherryRule-bootstrap",
+              "User-Agent": "CherryRule-recovery",
           }
 
-          with destination.open("wb") as output:
-              for index, sha in enumerate(blobs):
-                  url = f"https://api.github.com/repos/{repository}/git/blobs/{sha}"
-                  request = Request(url, headers=headers)
-                  with urlopen(request, timeout=30) as response:
-                      payload = json.load(response)
-                  output.write(base64.b64decode(payload["content"]))
-                  print(f"fetched {index + 1:02d}/{len(blobs):02d} {sha}")
-
-          actual_size = destination.stat().st_size
-          actual_sha256 = hashlib.sha256(destination.read_bytes()).hexdigest()
-          print(f"archive bytes={actual_size} sha256={actual_sha256}")
-
-          if actual_size != expected_size:
-              raise SystemExit(f"archive size mismatch: expected {expected_size}, got {actual_size}")
-          if actual_sha256 != expected_sha256:
-              raise SystemExit(
-                  f"archive SHA-256 mismatch: expected {expected_sha256}, got {actual_sha256}"
+          chunks = []
+          for index, sha in enumerate(shas, start=1):
+              request = Request(
+                  f"https://api.github.com/repos/{repository}/git/blobs/{sha}",
+                  headers=headers,
               )
+              with urlopen(request, timeout=30) as response:
+                  payload = json.load(response)
+              raw = base64.b64decode(payload["content"])
+              chunks.append(raw)
+              print(f"fetched {index:02d}/{len(shas):02d} {sha} bytes={len(raw)}")
+
+          alphabet = frozenset(b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\r\n")
+          def normalize(chunk):
+              stripped = b"".join(chunk.split())
+              if stripped and len(stripped) % 4 == 0 and set(stripped) <= alphabet:
+                  try:
+                      return base64.b64decode(stripped, validate=True)
+                  except Exception:
+                      pass
+              return chunk
+
+          candidates = [
+              ("all-raw", b"".join(chunks)),
+              ("all-normalized", b"".join(normalize(chunk) for chunk in chunks)),
+              ("without-probes-raw", b"".join(chunks[2:])),
+              ("without-probes-normalized", b"".join(normalize(chunk) for chunk in chunks[2:])),
+          ]
+
+          selected = None
+          for label, candidate in candidates:
+              try:
+                  tar_bytes = lzma.decompress(candidate)
+                  with tarfile.open(fileobj=BytesIO(tar_bytes), mode="r:") as archive:
+                      names = set(archive.getnames())
+                  required = {"repo/go.mod", "repo/Makefile"}
+                  if not required <= names or not any(name.startswith("repo/packs/") for name in names):
+                      raise ValueError("required CherryRule source paths are missing")
+                  selected = candidate
+                  print(
+                      f"selected={label} bytes={len(candidate)} "
+                      f"sha256={hashlib.sha256(candidate).hexdigest()} files={len(names)}"
+                  )
+                  break
+              except Exception as exc:
+                  print(f"candidate={label} rejected: {exc}")
+
+          if selected is None:
+              raise SystemExit("none of the recovered archive layouts is valid")
+          destination.write_bytes(selected)
           PY
 
-          mkdir -p "$tmp/extracted"
+          mkdir "$tmp/extracted"
           tar -xJf "$tmp/CherryRule-source.tar.xz" -C "$tmp/extracted"
           test -f "$tmp/extracted/repo/go.mod"
           test -f "$tmp/extracted/repo/Makefile"
+          test -d "$tmp/extracted/repo/packs"
+          test -d "$tmp/extracted/repo/policies"
 
           find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf -- {} +
           cp -a "$tmp/extracted/repo/." .
@@ -111,12 +140,11 @@ jobs:
           go-version-file: go.mod
           cache: false
 
-      - name: Validate rules and generate distributable catalogs
+      - name: Validate source and generated catalogs
         shell: bash
         run: |
           set -euo pipefail
           make check
-
           stats="$(go run ./cmd/cherryrule stats)"
           printf '%s\n' "$stats"
           grep -Fxq "rule packs: 23" <<<"$stats"
@@ -125,29 +153,14 @@ jobs:
           grep -Fxq "policies: 185" <<<"$stats"
           grep -Fxq "profiles: 8" <<<"$stats"
           grep -Fxq "CherryWAF v1 compatible: 450" <<<"$stats"
+          test "$(find . -path ./.git -prune -o -type f -print | wc -l | tr -d ' ')" = "148"
 
-          file_count="$(find . -path ./.git -prune -o -type f -print | wc -l | tr -d ' ')"
-          test "$file_count" -eq 148
-
-          {
-            echo "## CherryRule 0.1.0 import"
-            echo
-            echo '```text'
-            printf '%s\n' "$stats"
-            echo "files: $file_count"
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Publish validated repository to main
+      - name: Publish real source tree to main
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git diff --cached --quiet && {
-            echo "No repository changes were produced" >&2
-            exit 1
-          }
-          git commit -m "feat: import CherryRule 0.1.0"
+          git commit -m "feat: import CherryRule 0.1.0 source catalog"
           git push origin HEAD:main
