@@ -1,0 +1,125 @@
+name: Attach verified CherryRule source
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/attach-verified-source.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  STAGED_TREE_SHA: 'f9ed0301563fa4d94d435bf9437f328e03382cb9'
+  EXPECTED_ARCHIVE_SIZE: '139984'
+  EXPECTED_ARCHIVE_SHA256: '844f9a5cc2da4c2eaa08661bdc985b26f3e9e0288655c779f72ef36cd86ddcd2'
+  EXPECTED_RULE_PACKS: '23'
+  EXPECTED_RULES: '480'
+  EXPECTED_POLICY_PACKS: '8'
+  EXPECTED_POLICIES: '185'
+  EXPECTED_PROFILES: '8'
+  EXPECTED_V1_COMPATIBLE: '450'
+  EXPECTED_FILE_COUNT: '148'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Attach staged Git tree to main
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          api="https://api.github.com/repos/${GITHUB_REPOSITORY}"
+          payload="$(jq -n \
+            --arg message 'chore: attach verified CherryRule source payload' \
+            --arg tree "$STAGED_TREE_SHA" \
+            --arg parent "$GITHUB_SHA" \
+            '{message:$message,tree:$tree,parents:[$parent]}')"
+          response="$(curl --fail-with-body -sS \
+            -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "$api/git/commits" \
+            -d "$payload")"
+          attached_sha="$(jq -er '.sha' <<<"$response")"
+          ref_payload="$(jq -n --arg sha "$attached_sha" '{sha:$sha,force:false}')"
+          curl --fail-with-body -sS \
+            -X PATCH \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "$api/git/refs/heads/main" \
+            -d "$ref_payload" >/dev/null
+          echo "ATTACHED_COMMIT_SHA=$attached_sha" >> "$GITHUB_ENV"
+
+      - name: Check out attached source payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git reset --hard "$ATTACHED_COMMIT_SHA"
+          test -f .bootstrap/source.part-00.b64
+          test -f .bootstrap/source.part-12.b64
+
+      - name: Assemble and verify source archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/cherryrule-payload"
+          cat .bootstrap/source.part-*.b64 | base64 --decode > "$RUNNER_TEMP/CherryRule-source.tar.xz"
+          test "$(wc -c < "$RUNNER_TEMP/CherryRule-source.tar.xz" | tr -d ' ')" = "$EXPECTED_ARCHIVE_SIZE"
+          echo "$EXPECTED_ARCHIVE_SHA256  $RUNNER_TEMP/CherryRule-source.tar.xz" | sha256sum -c -
+          tar -xJf "$RUNNER_TEMP/CherryRule-source.tar.xz" -C "$RUNNER_TEMP/cherryrule-payload"
+          test -f "$RUNNER_TEMP/cherryrule-payload/README.md"
+          test -f "$RUNNER_TEMP/cherryrule-payload/go.mod"
+          test -f "$RUNNER_TEMP/cherryrule-payload/packs/request/350-sqli.json"
+          test -f "$RUNNER_TEMP/cherryrule-payload/policies/720-abuse-rate.json"
+          test -f "$RUNNER_TEMP/cherryrule-payload/catalog/RULE-CATALOG.md"
+          test -f "$RUNNER_TEMP/cherryrule-payload/dist/cherrywaf-v1/profiles/balanced.json"
+
+      - name: Replace bootstrap tree with CherryRule source
+        shell: bash
+        run: |
+          set -euo pipefail
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a "$RUNNER_TEMP/cherryrule-payload/." .
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Validate source and generated artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          make check
+          stats="$(go run ./cmd/cherryrule stats)"
+          printf '%s\n' "$stats"
+          grep -F "rule packs: $EXPECTED_RULE_PACKS" <<<"$stats"
+          grep -F "rules: $EXPECTED_RULES" <<<"$stats"
+          grep -F "policy packs: $EXPECTED_POLICY_PACKS" <<<"$stats"
+          grep -F "policies: $EXPECTED_POLICIES" <<<"$stats"
+          grep -F "profiles: $EXPECTED_PROFILES" <<<"$stats"
+          grep -F "CherryWAF v1 compatible: $EXPECTED_V1_COMPATIBLE" <<<"$stats"
+          git add -A
+          test "$(git ls-files | wc -l | tr -d ' ')" = "$EXPECTED_FILE_COUNT"
+          git diff --cached --check
+
+      - name: Publish verified source to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat: import CherryRule 0.1.0 rule catalog'
+          git push origin HEAD:main
