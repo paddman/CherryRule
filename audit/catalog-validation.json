@@ -1,0 +1,706 @@
+{
+  "audit_version": "1.0",
+  "counts": {
+    "action": {
+      "block": 184,
+      "challenge": 28,
+      "redact": 10,
+      "sanitize": 17,
+      "score": 201,
+      "throttle": 15
+    },
+    "category": {
+      "abuse.bot": 2,
+      "abuse.botnet": 1,
+      "abuse.challenge": 1,
+      "abuse.concurrency": 1,
+      "abuse.cost": 1,
+      "abuse.hotlink": 1,
+      "abuse.rate": 3,
+      "abuse.scraping": 3,
+      "abuse.slow-body": 1,
+      "abuse.slowloris": 1,
+      "ai.agent.approval": 1,
+      "ai.agent.binding": 1,
+      "ai.agent.filesystem": 1,
+      "ai.agent.replay": 1,
+      "ai.agent.shell": 1,
+      "ai.agent.ssrf": 1,
+      "ai.agent.tool": 2,
+      "ai.api": 1,
+      "ai.mcp": 1,
+      "ai.prompt-injection": 12,
+      "ai.quota": 1,
+      "ai.rag": 2,
+      "ai.rate": 1,
+      "ai.resource": 4,
+      "api.bfla": 1,
+      "api.bola": 1,
+      "api.graphql": 5,
+      "api.grpc": 2,
+      "api.idempotency": 1,
+      "api.openapi": 2,
+      "api.resource-limit": 2,
+      "api.schema": 2,
+      "api.version": 1,
+      "api.webhook": 1,
+      "api.websocket": 2,
+      "auth.credential-stuffing": 1,
+      "auth.csrf": 1,
+      "auth.enumeration": 2,
+      "auth.login-rate": 2,
+      "auth.otp": 2,
+      "auth.password-reset": 3,
+      "auth.password-spray": 1,
+      "auth.registration": 1,
+      "auth.transport": 2,
+      "behavior.anomaly": 1,
+      "behavior.attack-chain": 1,
+      "behavior.enforcement": 1,
+      "behavior.step-up": 1,
+      "behavior.trust": 1,
+      "business.account-farming": 1,
+      "business.checkout": 3,
+      "business.coupon": 2,
+      "business.fanout": 1,
+      "business.gift-card": 1,
+      "business.inventory": 1,
+      "business.payment": 2,
+      "business.referral": 1,
+      "business.refund": 1,
+      "business.reservation": 1,
+      "business.workflow": 1,
+      "cache.deception": 1,
+      "cache.poisoning": 2,
+      "deserialization.policy": 2,
+      "deserialization.probe": 1,
+      "deserialization.unsafe": 8,
+      "devops.kubernetes": 1,
+      "exposure.backup": 1,
+      "exposure.diagnostics": 4,
+      "exposure.files": 20,
+      "exposure.secrets": 1,
+      "injection.crlf": 2,
+      "injection.csv": 1,
+      "injection.email": 1,
+      "injection.esi": 1,
+      "injection.format-string": 1,
+      "injection.hpp": 1,
+      "injection.json": 1,
+      "injection.ldap": 2,
+      "injection.log": 1,
+      "injection.mass-assignment": 1,
+      "injection.nosql": 13,
+      "injection.prototype-pollution": 3,
+      "injection.smtp": 1,
+      "injection.sql": 25,
+      "injection.ssi": 1,
+      "injection.xpath": 2,
+      "injection.xss": 20,
+      "oauth.oidc": 1,
+      "oauth.pkce": 1,
+      "oauth.redirect": 1,
+      "oauth.state": 1,
+      "platform.admin": 1,
+      "platform.gitlab": 1,
+      "platform.graphql": 1,
+      "platform.jboss": 1,
+      "platform.jupyter": 1,
+      "platform.php": 3,
+      "platform.spring": 2,
+      "platform.spring.exposure": 1,
+      "platform.swagger": 1,
+      "platform.tomcat": 2,
+      "platform.wordpress": 4,
+      "privacy.email": 1,
+      "privacy.payment-card": 1,
+      "privacy.phone": 1,
+      "privacy.schema": 1,
+      "privacy.thai-id": 1,
+      "protocol.headers": 15,
+      "protocol.method": 4,
+      "protocol.request-line": 5,
+      "protocol.request-target": 1,
+      "protocol.smuggling": 12,
+      "rce.command": 17,
+      "rce.jndi": 1,
+      "rce.php": 1,
+      "rce.spring": 1,
+      "rce.template": 10,
+      "recon.asset-scan": 1,
+      "recon.cms": 1,
+      "recon.extension-scan": 1,
+      "recon.id-enumeration": 2,
+      "recon.method-fuzz": 1,
+      "recon.parameter-fuzz": 1,
+      "recon.path-entropy": 1,
+      "recon.path-scan": 2,
+      "recon.scanner": 1,
+      "recon.tech-fingerprint": 1,
+      "recon.user-agent": 4,
+      "recon.vhost": 1,
+      "response.cache": 2,
+      "response.cors": 2,
+      "response.error": 1,
+      "response.error.database": 1,
+      "response.error.dotnet": 1,
+      "response.error.java": 1,
+      "response.error.python": 2,
+      "response.error.ruby": 1,
+      "response.headers": 6,
+      "response.network": 1,
+      "response.path": 1,
+      "response.secret": 8,
+      "response.source": 1,
+      "routing.header-override": 1,
+      "routing.host": 4,
+      "routing.override": 1,
+      "routing.redirect": 1,
+      "session.cookie": 4,
+      "session.entropy": 1,
+      "session.fixation": 2,
+      "session.timeout": 2,
+      "session.transport": 1,
+      "ssrf.destination": 6,
+      "ssrf.internal": 1,
+      "ssrf.metadata": 1,
+      "ssrf.normalization": 1,
+      "ssrf.resolution": 1,
+      "ssrf.scheme": 1,
+      "threat-intel.asn": 1,
+      "threat-intel.cidr": 1,
+      "threat-intel.file": 1,
+      "threat-intel.http": 1,
+      "threat-intel.ip": 2,
+      "threat-intel.lifecycle": 1,
+      "threat-intel.proxy": 1,
+      "threat-intel.tls": 1,
+      "threat-intel.url": 1,
+      "token.jwt": 12,
+      "token.saml": 3,
+      "token.scope": 1,
+      "traversal.file-inclusion": 8,
+      "upload.executable": 1,
+      "upload.malware": 1,
+      "upload.policy": 15,
+      "upload.webshell": 4,
+      "virtual-patch.approval": 1,
+      "virtual-patch.deployment": 1,
+      "virtual-patch.lifecycle": 1,
+      "virtual-patch.quality": 1,
+      "virtual-patch.scope": 2,
+      "xml.external-entity": 6,
+      "xml.resource-limit": 2,
+      "xml.xxe": 1
+    },
+    "engine": {
+      "agent_gateway": 9,
+      "authorization": 2,
+      "catalog": 2,
+      "deployment": 2,
+      "dns_policy": 1,
+      "file_inspector": 18,
+      "graphql": 4,
+      "grpc": 2,
+      "parser": 47,
+      "policy": 20,
+      "re2": 225,
+      "reputation": 9,
+      "response_policy": 15,
+      "schema": 11,
+      "signature": 1,
+      "stateful": 65,
+      "token_parser": 20,
+      "websocket": 2
+    },
+    "severity": {
+      "critical": 198,
+      "high": 196,
+      "low": 1,
+      "medium": 60
+    }
+  },
+  "declared_total": 512,
+  "duplicate_ids": [],
+  "generated_at_utc": "2026-08-14T06:36:49.441334+00:00",
+  "generated_re2_catalog_json": {
+    "error": "UnicodeDecodeError: 'utf-8' codec can't decode byte 0xb8 in position 24700: invalid start byte",
+    "parseable": false
+  },
+  "invalid_rules": [
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-FILE-240022",
+      "index": 222
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-FILE-240023",
+      "index": 223
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-FILE-240024",
+      "index": 224
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-FILE-240026",
+      "index": 226
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-FILE-240027",
+      "index": 227
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-FILE-240028",
+      "index": 228
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-FILE-240029",
+      "index": 229
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270003",
+      "index": 368
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270006",
+      "index": 371
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270007",
+      "index": 372
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270008",
+      "index": 373
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270009",
+      "index": 374
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270010",
+      "index": 375
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270011",
+      "index": 376
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270012",
+      "index": 377
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270013",
+      "index": 378
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270014",
+      "index": 379
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270018",
+      "index": 383
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270019",
+      "index": 384
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270022",
+      "index": 387
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270023",
+      "index": 388
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270027",
+      "index": 392
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270029",
+      "index": 394
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270030",
+      "index": 395
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270031",
+      "index": 396
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270036",
+      "index": 401
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270037",
+      "index": 402
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270038",
+      "index": 403
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270039",
+      "index": 404
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270040",
+      "index": 405
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270041",
+      "index": 406
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270042",
+      "index": 407
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270043",
+      "index": 408
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270044",
+      "index": 409
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270045",
+      "index": 410
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270046",
+      "index": 411
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270047",
+      "index": 412
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270048",
+      "index": 413
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270049",
+      "index": 414
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270050",
+      "index": 415
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270051",
+      "index": 416
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270052",
+      "index": 417
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270053",
+      "index": 418
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270055",
+      "index": 420
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270056",
+      "index": 421
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270057",
+      "index": 422
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270058",
+      "index": 423
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270059",
+      "index": 424
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-PLAT-270060",
+      "index": 425
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-RESP-280002",
+      "index": 427
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-RESP-280005",
+      "index": 430
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-RESP-280006",
+      "index": 431
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-RESP-280009",
+      "index": 434
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-RESP-280014",
+      "index": 439
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-RESP-280023",
+      "index": 448
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-RESP-280025",
+      "index": 450
+    },
+    {
+      "errors": [
+        "name_th does not contain Thai text",
+        "description_th does not contain Thai text"
+      ],
+      "id": "CWAF-AI-290013",
+      "index": 478
+    }
+  ],
+  "invalid_total": 57,
+  "observed_total": 512,
+  "re2": {
+    "compile_failures": 0,
+    "regex_rules_checked": 281
+  },
+  "source": {
+    "bundle_path": "dist/cherry-rules.bundle.yaml",
+    "bundle_sha256": "7a793ce09b2d71e51ffe01571320913e5dd36c61d32de54bfce0c319ef67809e",
+    "commit": "ef711d7abb78047d17d7a8f82297636d2fea3df6",
+    "ref": "recovery/catalog-source-20260814",
+    "repository": "paddman/CherryRule",
+    "schema_sha256": "baad74395297994ba213f6345624331d0f403984e6487841ccfea4740567f465"
+  },
+  "thai_complete_total": 455,
+  "top_level_errors": [],
+  "valid_total": 455,
+  "warnings": []
+}
