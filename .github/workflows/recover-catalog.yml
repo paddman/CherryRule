@@ -1,0 +1,117 @@
+name: Recover embedded CherryRule catalog
+
+on:
+  push:
+    branches:
+      - recovery/catalog-source-20260814
+    paths:
+      - .github/workflows/recover-catalog.yml
+
+permissions:
+  contents: write
+
+jobs:
+  recover:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out recovery branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Decode and safely extract catalog
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from __future__ import annotations
+
+          import base64
+          import hashlib
+          import io
+          import shutil
+          import tarfile
+          import zipfile
+          from pathlib import Path, PurePosixPath
+
+          repo = Path.cwd().resolve()
+          parts = sorted((repo / ".bootstrap").glob("part-*.b64"))
+          if not parts:
+              raise SystemExit("no .bootstrap/part-*.b64 files found")
+
+          encoded = "".join("".join(part.read_text(encoding="ascii").split()) for part in parts)
+          payload = base64.b64decode(encoded, validate=True)
+          print(f"decoded {len(parts)} parts, {len(payload)} bytes, sha256={hashlib.sha256(payload).hexdigest()}")
+
+          out = Path("/tmp/cherryrule-recovered")
+          shutil.rmtree(out, ignore_errors=True)
+          out.mkdir(parents=True)
+
+          def checked_name(name: str) -> str:
+              normalized = name.replace("\\", "/")
+              path = PurePosixPath(normalized)
+              if path.is_absolute() or ".." in path.parts:
+                  raise ValueError(f"unsafe archive path: {name!r}")
+              return normalized
+
+          extracted = False
+          try:
+              with tarfile.open(fileobj=io.BytesIO(payload), mode="r:*") as archive:
+                  members = archive.getmembers()
+                  for member in members:
+                      checked_name(member.name)
+                      if member.issym() or member.islnk():
+                          raise ValueError(f"links are not accepted in recovery archive: {member.name!r}")
+                  archive.extractall(out, members=members, filter="data")
+                  extracted = True
+                  print(f"extracted tar archive with {len(members)} entries")
+          except tarfile.TarError:
+              pass
+
+          if not extracted and zipfile.is_zipfile(io.BytesIO(payload)):
+              with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+                  names = archive.namelist()
+                  for name in names:
+                      checked_name(name)
+                  archive.extractall(out)
+                  extracted = True
+                  print(f"extracted zip archive with {len(names)} entries")
+
+          if not extracted:
+              raise SystemExit(f"unsupported embedded payload format; magic={payload[:16]!r}")
+
+          entries = [entry for entry in out.iterdir() if entry.name != "__MACOSX"]
+          source = entries[0] if len(entries) == 1 and entries[0].is_dir() else out
+          required = [source / "settings" / "rules.yaml", source / "README.md"]
+          missing = [str(path.relative_to(source)) for path in required if not path.exists()]
+          if missing:
+              raise SystemExit(f"recovered archive is missing required catalog files: {missing}")
+
+          shutil.rmtree(repo / ".bootstrap", ignore_errors=True)
+          for child in source.iterdir():
+              if child.name in {".git", ".bootstrap"}:
+                  continue
+              destination = repo / child.name
+              if child.is_dir():
+                  shutil.copytree(child, destination, dirs_exist_ok=True)
+              else:
+                  destination.parent.mkdir(parents=True, exist_ok=True)
+                  shutil.copy2(child, destination)
+
+          workflow = repo / ".github" / "workflows" / "recover-catalog.yml"
+          workflow.unlink(missing_ok=True)
+          print("catalog recovered and one-shot workflow removed from the staged tree")
+          PY
+
+      - name: Commit recovered catalog
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git diff --cached --stat
+          git commit -m "chore: recover embedded CherryRule catalog [skip ci]"
+          git push origin HEAD
