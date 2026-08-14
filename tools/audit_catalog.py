@@ -1,0 +1,261 @@
+#!/usr/bin/env python3
+"""Validate the recovered CherryRule bundle and emit a clean JSON corpus."""
+
+from __future__ import annotations
+
+import collections
+import datetime as dt
+import hashlib
+import json
+import os
+import re
+from pathlib import Path
+from typing import Any
+
+import jsonschema
+import re2
+import yaml
+
+ROOT = Path(__file__).resolve().parents[1]
+BUNDLE_PATH = ROOT / "dist" / "cherry-rules.bundle.yaml"
+GENERATED_JSON_PATH = ROOT / "dist" / "cherry-rules.re2-catalog.json"
+SCHEMA_PATH = ROOT / "schema" / "cherry-rule-pack.schema.json"
+OUT_DIR = ROOT / "audit"
+
+THAI_RE = re.compile(r"[\u0E00-\u0E7F]")
+CONTROL_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+
+
+def sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def error_path(error: jsonschema.ValidationError) -> str:
+    if not error.absolute_path:
+        return "$"
+    return "$" + "".join(
+        f"[{part}]" if isinstance(part, int) else f".{part}"
+        for part in error.absolute_path
+    )
+
+
+def main() -> int:
+    OUT_DIR.mkdir(exist_ok=True)
+
+    bundle = yaml.safe_load(BUNDLE_PATH.read_text(encoding="utf-8"))
+    if not isinstance(bundle, dict):
+        raise SystemExit("bundle root must be a mapping")
+
+    raw_rules = bundle.get("rules")
+    packs = bundle.get("packs")
+    if not isinstance(raw_rules, list):
+        raise SystemExit("bundle.rules must be a list")
+    if not isinstance(packs, list):
+        raise SystemExit("bundle.packs must be a list")
+
+    schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+    rule_schema = schema["$defs"]["rule"]
+    validator = jsonschema.Draft202012Validator(rule_schema)
+
+    declared_total = bundle.get("total_rules")
+    declared_pack_total = sum(int(pack.get("rule_count", 0)) for pack in packs)
+    top_level_errors: list[str] = []
+    if declared_total != len(raw_rules):
+        top_level_errors.append(
+            f"bundle total_rules={declared_total!r} but rules has {len(raw_rules)} entries"
+        )
+    if declared_pack_total != len(raw_rules):
+        top_level_errors.append(
+            f"pack rule_count sum={declared_pack_total} but rules has {len(raw_rules)} entries"
+        )
+
+    id_counts = collections.Counter(
+        rule.get("id") for rule in raw_rules if isinstance(rule, dict)
+    )
+    duplicate_ids = sorted(
+        str(rule_id) for rule_id, count in id_counts.items() if rule_id and count > 1
+    )
+
+    pack_for_index: list[dict[str, Any]] = []
+    for pack in packs:
+        for _ in range(int(pack.get("rule_count", 0))):
+            pack_for_index.append(pack)
+
+    valid_rules: list[dict[str, Any]] = []
+    invalid_rules: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+    engine_counts: collections.Counter[str] = collections.Counter()
+    severity_counts: collections.Counter[str] = collections.Counter()
+    action_counts: collections.Counter[str] = collections.Counter()
+    category_counts: collections.Counter[str] = collections.Counter()
+    thai_complete = 0
+    re2_checked = 0
+    re2_failed = 0
+
+    for index, raw_rule in enumerate(raw_rules):
+        issues: list[str] = []
+        rule_warnings: list[str] = []
+        rule_id = f"index:{index}"
+
+        if not isinstance(raw_rule, dict):
+            invalid_rules.append(
+                {"index": index, "id": rule_id, "errors": ["rule is not an object"]}
+            )
+            continue
+
+        rule_id = str(raw_rule.get("id") or rule_id)
+        validation_errors = sorted(
+            validator.iter_errors(raw_rule),
+            key=lambda item: ("/".join(map(str, item.absolute_path)), item.message),
+        )
+        for validation_error in validation_errors:
+            issues.append(f"{error_path(validation_error)}: {validation_error.message}")
+
+        if rule_id in duplicate_ids:
+            issues.append("duplicate rule id")
+
+        name_th = raw_rule.get("name_th")
+        description_th = raw_rule.get("description_th")
+        thai_name_ok = isinstance(name_th, str) and bool(THAI_RE.search(name_th))
+        thai_description_ok = isinstance(description_th, str) and bool(
+            THAI_RE.search(description_th)
+        )
+        if not thai_name_ok:
+            issues.append("name_th does not contain Thai text")
+        if not thai_description_ok:
+            issues.append("description_th does not contain Thai text")
+        if thai_name_ok and thai_description_ok:
+            thai_complete += 1
+
+        for field in ("name", "name_th", "description_th", "false_positive_notes"):
+            value = raw_rule.get(field)
+            if isinstance(value, str):
+                if CONTROL_RE.search(value):
+                    issues.append(f"{field} contains a control character")
+                if value != value.strip():
+                    rule_warnings.append(f"{field} has leading or trailing whitespace")
+
+        operator = raw_rule.get("operator")
+        if isinstance(operator, dict) and operator.get("type") == "regex":
+            pattern = operator.get("pattern")
+            if isinstance(pattern, str):
+                re2_checked += 1
+                try:
+                    re2.compile(pattern)
+                except Exception as exc:  # google-re2 uses implementation-specific errors
+                    re2_failed += 1
+                    issues.append(f"RE2 compile failed: {exc}")
+
+        if issues:
+            invalid_rules.append({"index": index, "id": rule_id, "errors": issues})
+            continue
+
+        pack = pack_for_index[index] if index < len(pack_for_index) else {}
+        normalized = dict(raw_rule)
+        normalized["source_pack"] = {
+            "id": pack.get("id"),
+            "slug": pack.get("slug"),
+            "version": pack.get("version"),
+        }
+        valid_rules.append(normalized)
+
+        engine_counts[str(raw_rule.get("engine"))] += 1
+        severity_counts[str(raw_rule.get("severity"))] += 1
+        category_counts[str(raw_rule.get("category"))] += 1
+        action = raw_rule.get("action")
+        if isinstance(action, dict):
+            action_counts[str(action.get("mode"))] += 1
+
+        if rule_warnings:
+            warnings.append({"index": index, "id": rule_id, "warnings": rule_warnings})
+
+    generated_json_status: dict[str, Any]
+    try:
+        generated_json = json.loads(GENERATED_JSON_PATH.read_text(encoding="utf-8"))
+        generated_json_status = {
+            "parseable": True,
+            "root_type": type(generated_json).__name__,
+        }
+    except Exception as exc:
+        generated_json_status = {
+            "parseable": False,
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+
+    source = {
+        "repository": "paddman/CherryRule",
+        "ref": "recovery/catalog-source-20260814",
+        "commit": os.environ.get("GITHUB_SHA", "local"),
+        "bundle_path": str(BUNDLE_PATH.relative_to(ROOT)),
+        "bundle_sha256": sha256(BUNDLE_PATH),
+        "schema_sha256": sha256(SCHEMA_PATH),
+    }
+    report = {
+        "audit_version": "1.0",
+        "generated_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "source": source,
+        "declared_total": declared_total,
+        "observed_total": len(raw_rules),
+        "valid_total": len(valid_rules),
+        "invalid_total": len(invalid_rules),
+        "thai_complete_total": thai_complete,
+        "duplicate_ids": duplicate_ids,
+        "top_level_errors": top_level_errors,
+        "re2": {
+            "regex_rules_checked": re2_checked,
+            "compile_failures": re2_failed,
+        },
+        "generated_re2_catalog_json": generated_json_status,
+        "counts": {
+            "engine": dict(sorted(engine_counts.items())),
+            "severity": dict(sorted(severity_counts.items())),
+            "action": dict(sorted(action_counts.items())),
+            "category": dict(sorted(category_counts.items())),
+        },
+        "invalid_rules": invalid_rules,
+        "warnings": warnings,
+    }
+    clean_corpus = {
+        "schema_version": "1.0",
+        "catalog_version": bundle.get("catalog_version"),
+        "generated_at": bundle.get("generated_at"),
+        "source": source,
+        "total_rules": len(valid_rules),
+        "packs": packs,
+        "rules": valid_rules,
+    }
+
+    (OUT_DIR / "catalog-validation.json").write_text(
+        json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    (OUT_DIR / "cherry-rules.valid.json").write_text(
+        json.dumps(clean_corpus, ensure_ascii=False, separators=(",", ":")) + "\n",
+        encoding="utf-8",
+    )
+
+    summary = {
+        key: report[key]
+        for key in (
+            "declared_total",
+            "observed_total",
+            "valid_total",
+            "invalid_total",
+            "thai_complete_total",
+            "duplicate_ids",
+            "top_level_errors",
+            "re2",
+            "generated_re2_catalog_json",
+        )
+    }
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+
+    return 1 if top_level_errors or invalid_rules else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
