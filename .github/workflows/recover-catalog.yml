@@ -20,7 +20,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Decode outer archive and nested Git bundle
+      - name: Decode and safely extract catalog
         shell: bash
         run: |
           set -euo pipefail
@@ -35,17 +35,17 @@ jobs:
           from pathlib import Path, PurePosixPath
 
           repo = Path.cwd().resolve()
-          outer_parts = sorted((repo / ".bootstrap").glob("part-*.b64"))
-          if not outer_parts:
+          parts = sorted((repo / ".bootstrap").glob("part-*.b64"))
+          if not parts:
               raise SystemExit("no .bootstrap/part-*.b64 files found")
 
-          encoded = "".join("".join(part.read_text(encoding="ascii").split()) for part in outer_parts)
+          encoded = "".join("".join(part.read_text(encoding="ascii").split()) for part in parts)
           payload = base64.b64decode(encoded, validate=True)
-          print(f"outer payload: {len(outer_parts)} parts, {len(payload)} bytes, sha256={hashlib.sha256(payload).hexdigest()}")
+          print(f"payload: {len(parts)} parts, {len(payload)} bytes, sha256={hashlib.sha256(payload).hexdigest()}")
 
-          out = Path("/tmp/cherryrule-outer")
-          shutil.rmtree(out, ignore_errors=True)
-          out.mkdir(parents=True)
+          source = Path("/tmp/cherryrule-source")
+          shutil.rmtree(source, ignore_errors=True)
+          source.mkdir(parents=True)
 
           def checked_name(name: str) -> None:
               normalized = name.replace("\\", "/")
@@ -59,45 +59,20 @@ jobs:
                   checked_name(member.name)
                   if member.issym() or member.islnk():
                       raise ValueError(f"links are not accepted in recovery archive: {member.name!r}")
-              archive.extractall(out, members=members, filter="data")
+              archive.extractall(source, members=members, filter="data")
 
-          print("outer archive entries:")
-          for path in sorted(out.rglob("*")):
-              if path.is_file():
-                  print(f"  {path.relative_to(out)} ({path.stat().st_size} bytes)")
+          required = [
+              source / "catalog.yaml",
+              source / "dist" / "cherry-rules.bundle.yaml",
+              source / "dist" / "cherry-rules.re2-catalog.json",
+              source / "schema" / "cherry-rule-pack.schema.json",
+          ]
+          missing = [str(path.relative_to(source)) for path in required if not path.is_file()]
+          if missing:
+              raise SystemExit(f"recovered archive is missing required files: {missing}")
 
-          nested_parts = sorted(out.rglob("source.part-*.b64"))
-          if not nested_parts:
-              nested_parts = sorted(out.rglob("*.part-*.b64"))
-          if not nested_parts:
-              raise SystemExit("outer archive contains no nested source.part-*.b64 files")
-
-          nested_encoded = "".join(
-              "".join(part.read_text(encoding="ascii").split()) for part in nested_parts
-          )
-          nested = base64.b64decode(nested_encoded, validate=True)
-          bundle = Path("/tmp/cherryrule-source.bundle")
-          bundle.write_bytes(nested)
-          print(f"nested payload: {len(nested_parts)} parts, {len(nested)} bytes, sha256={hashlib.sha256(nested).hexdigest()}, magic={nested[:24]!r}")
+          print(f"recovered {sum(1 for path in source.rglob('*') if path.is_file())} files")
           PY
-
-          rm -rf /tmp/cherryrule-bundle-repo /tmp/cherryrule-source
-          mkdir -p /tmp/cherryrule-bundle-repo /tmp/cherryrule-source
-          git -C /tmp/cherryrule-bundle-repo init
-          git -C /tmp/cherryrule-bundle-repo bundle verify /tmp/cherryrule-source.bundle
-          git -C /tmp/cherryrule-bundle-repo fetch /tmp/cherryrule-source.bundle \
-            refs/heads/injected:refs/remotes/payload/injected
-          git --git-dir=/tmp/cherryrule-bundle-repo/.git \
-            --work-tree=/tmp/cherryrule-source \
-            checkout -f refs/remotes/payload/injected -- .
-
-          if find /tmp/cherryrule-source -type l -print -quit | grep -q .; then
-            echo "recovered source contains symbolic links; refusing to copy" >&2
-            exit 1
-          fi
-          test -f /tmp/cherryrule-source/settings/rules.yaml
-          test -f /tmp/cherryrule-source/README.md
-          find /tmp/cherryrule-source -maxdepth 3 -type f | sort
 
       - name: Replace bootstrap with recovered catalog
         shell: bash
@@ -114,8 +89,6 @@ jobs:
           shutil.rmtree(repo / ".bootstrap", ignore_errors=True)
 
           for child in source.iterdir():
-              if child.name == ".git":
-                  continue
               destination = repo / child.name
               if child.is_dir():
                   shutil.copytree(child, destination, dirs_exist_ok=True)
