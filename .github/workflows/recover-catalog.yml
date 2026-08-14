@@ -20,7 +20,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Decode and safely extract catalog
+      - name: Decode outer archive and nested Git bundle
         shell: bash
         run: |
           set -euo pipefail
@@ -32,65 +32,89 @@ jobs:
           import io
           import shutil
           import tarfile
-          import zipfile
           from pathlib import Path, PurePosixPath
 
           repo = Path.cwd().resolve()
-          parts = sorted((repo / ".bootstrap").glob("part-*.b64"))
-          if not parts:
+          outer_parts = sorted((repo / ".bootstrap").glob("part-*.b64"))
+          if not outer_parts:
               raise SystemExit("no .bootstrap/part-*.b64 files found")
 
-          encoded = "".join("".join(part.read_text(encoding="ascii").split()) for part in parts)
+          encoded = "".join("".join(part.read_text(encoding="ascii").split()) for part in outer_parts)
           payload = base64.b64decode(encoded, validate=True)
-          print(f"decoded {len(parts)} parts, {len(payload)} bytes, sha256={hashlib.sha256(payload).hexdigest()}")
+          print(f"outer payload: {len(outer_parts)} parts, {len(payload)} bytes, sha256={hashlib.sha256(payload).hexdigest()}")
 
-          out = Path("/tmp/cherryrule-recovered")
+          out = Path("/tmp/cherryrule-outer")
           shutil.rmtree(out, ignore_errors=True)
           out.mkdir(parents=True)
 
-          def checked_name(name: str) -> str:
+          def checked_name(name: str) -> None:
               normalized = name.replace("\\", "/")
               path = PurePosixPath(normalized)
               if path.is_absolute() or ".." in path.parts:
                   raise ValueError(f"unsafe archive path: {name!r}")
-              return normalized
 
-          extracted = False
-          try:
-              with tarfile.open(fileobj=io.BytesIO(payload), mode="r:*") as archive:
-                  members = archive.getmembers()
-                  for member in members:
-                      checked_name(member.name)
-                      if member.issym() or member.islnk():
-                          raise ValueError(f"links are not accepted in recovery archive: {member.name!r}")
-                  archive.extractall(out, members=members, filter="data")
-                  extracted = True
-                  print(f"extracted tar archive with {len(members)} entries")
-          except tarfile.TarError:
-              pass
+          with tarfile.open(fileobj=io.BytesIO(payload), mode="r:*") as archive:
+              members = archive.getmembers()
+              for member in members:
+                  checked_name(member.name)
+                  if member.issym() or member.islnk():
+                      raise ValueError(f"links are not accepted in recovery archive: {member.name!r}")
+              archive.extractall(out, members=members, filter="data")
 
-          if not extracted and zipfile.is_zipfile(io.BytesIO(payload)):
-              with zipfile.ZipFile(io.BytesIO(payload)) as archive:
-                  names = archive.namelist()
-                  for name in names:
-                      checked_name(name)
-                  archive.extractall(out)
-                  extracted = True
-                  print(f"extracted zip archive with {len(names)} entries")
+          print("outer archive entries:")
+          for path in sorted(out.rglob("*")):
+              if path.is_file():
+                  print(f"  {path.relative_to(out)} ({path.stat().st_size} bytes)")
 
-          if not extracted:
-              raise SystemExit(f"unsupported embedded payload format; magic={payload[:16]!r}")
+          nested_parts = sorted(out.rglob("source.part-*.b64"))
+          if not nested_parts:
+              nested_parts = sorted(out.rglob("*.part-*.b64"))
+          if not nested_parts:
+              raise SystemExit("outer archive contains no nested source.part-*.b64 files")
 
-          entries = [entry for entry in out.iterdir() if entry.name != "__MACOSX"]
-          source = entries[0] if len(entries) == 1 and entries[0].is_dir() else out
-          required = [source / "settings" / "rules.yaml", source / "README.md"]
-          missing = [str(path.relative_to(source)) for path in required if not path.exists()]
-          if missing:
-              raise SystemExit(f"recovered archive is missing required catalog files: {missing}")
+          nested_encoded = "".join(
+              "".join(part.read_text(encoding="ascii").split()) for part in nested_parts
+          )
+          nested = base64.b64decode(nested_encoded, validate=True)
+          bundle = Path("/tmp/cherryrule-source.bundle")
+          bundle.write_bytes(nested)
+          print(f"nested payload: {len(nested_parts)} parts, {len(nested)} bytes, sha256={hashlib.sha256(nested).hexdigest()}, magic={nested[:24]!r}")
+          PY
 
+          rm -rf /tmp/cherryrule-bundle-repo /tmp/cherryrule-source
+          mkdir -p /tmp/cherryrule-bundle-repo /tmp/cherryrule-source
+          git -C /tmp/cherryrule-bundle-repo init
+          git -C /tmp/cherryrule-bundle-repo bundle verify /tmp/cherryrule-source.bundle
+          git -C /tmp/cherryrule-bundle-repo fetch /tmp/cherryrule-source.bundle \
+            refs/heads/injected:refs/remotes/payload/injected
+          git --git-dir=/tmp/cherryrule-bundle-repo/.git \
+            --work-tree=/tmp/cherryrule-source \
+            checkout -f refs/remotes/payload/injected -- .
+
+          if find /tmp/cherryrule-source -type l -print -quit | grep -q .; then
+            echo "recovered source contains symbolic links; refusing to copy" >&2
+            exit 1
+          fi
+          test -f /tmp/cherryrule-source/settings/rules.yaml
+          test -f /tmp/cherryrule-source/README.md
+          find /tmp/cherryrule-source -maxdepth 3 -type f | sort
+
+      - name: Replace bootstrap with recovered catalog
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from __future__ import annotations
+
+          import shutil
+          from pathlib import Path
+
+          repo = Path.cwd().resolve()
+          source = Path("/tmp/cherryrule-source")
           shutil.rmtree(repo / ".bootstrap", ignore_errors=True)
+
           for child in source.iterdir():
-              if child.name in {".git", ".bootstrap"}:
+              if child.name == ".git":
                   continue
               destination = repo / child.name
               if child.is_dir():
@@ -99,15 +123,9 @@ jobs:
                   destination.parent.mkdir(parents=True, exist_ok=True)
                   shutil.copy2(child, destination)
 
-          workflow = repo / ".github" / "workflows" / "recover-catalog.yml"
-          workflow.unlink(missing_ok=True)
-          print("catalog recovered and one-shot workflow removed from the staged tree")
+          (repo / ".github" / "workflows" / "recover-catalog.yml").unlink(missing_ok=True)
           PY
 
-      - name: Commit recovered catalog
-        shell: bash
-        run: |
-          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
