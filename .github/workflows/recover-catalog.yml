@@ -89,14 +89,14 @@ jobs:
           shutil.rmtree(repo / ".bootstrap", ignore_errors=True)
 
           for child in source.iterdir():
+              if child.name == ".github":
+                  continue
               destination = repo / child.name
               if child.is_dir():
                   shutil.copytree(child, destination, dirs_exist_ok=True)
               else:
                   destination.parent.mkdir(parents=True, exist_ok=True)
                   shutil.copy2(child, destination)
-
-          (repo / ".github" / "workflows" / "recover-catalog.yml").unlink(missing_ok=True)
           PY
 
           git config user.name "github-actions[bot]"
