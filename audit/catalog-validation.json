@@ -1,12 +1,12 @@
 {
-  "audit_version": "1.0",
+  "audit_version": "1.1",
   "counts": {
     "action": {
-      "block": 184,
+      "block": 203,
       "challenge": 28,
-      "redact": 10,
+      "redact": 12,
       "sanitize": 17,
-      "score": 201,
+      "score": 237,
       "throttle": 15
     },
     "category": {
@@ -27,7 +27,7 @@
       "ai.agent.shell": 1,
       "ai.agent.ssrf": 1,
       "ai.agent.tool": 2,
-      "ai.api": 1,
+      "ai.api": 2,
       "ai.mcp": 1,
       "ai.prompt-injection": 12,
       "ai.quota": 1,
@@ -72,12 +72,21 @@
       "business.workflow": 1,
       "cache.deception": 1,
       "cache.poisoning": 2,
+      "cloud.credential": 5,
+      "cloud.metadata": 6,
       "deserialization.policy": 2,
       "deserialization.probe": 1,
       "deserialization.unsafe": 8,
-      "devops.kubernetes": 1,
+      "devops.cicd": 1,
+      "devops.consul": 1,
+      "devops.docker": 1,
+      "devops.elasticsearch": 1,
+      "devops.etcd": 1,
+      "devops.kubernetes": 2,
+      "devops.redis": 1,
+      "devops.vault": 1,
       "exposure.backup": 1,
-      "exposure.diagnostics": 4,
+      "exposure.diagnostics": 11,
       "exposure.files": 20,
       "exposure.secrets": 1,
       "injection.crlf": 2,
@@ -102,16 +111,31 @@
       "oauth.redirect": 1,
       "oauth.state": 1,
       "platform.admin": 1,
+      "platform.django": 1,
+      "platform.drupal": 3,
+      "platform.flask": 1,
       "platform.gitlab": 1,
+      "platform.grafana": 1,
       "platform.graphql": 1,
       "platform.jboss": 1,
+      "platform.jenkins": 1,
+      "platform.joomla": 3,
       "platform.jupyter": 1,
+      "platform.kibana": 1,
+      "platform.laravel": 1,
+      "platform.magento": 3,
+      "platform.nextjs": 1,
+      "platform.nodejs": 1,
       "platform.php": 3,
-      "platform.spring": 2,
+      "platform.prometheus": 1,
+      "platform.rails": 1,
+      "platform.spring": 3,
       "platform.spring.exposure": 1,
+      "platform.struts": 1,
       "platform.swagger": 1,
+      "platform.symfony": 1,
       "platform.tomcat": 2,
-      "platform.wordpress": 4,
+      "platform.wordpress": 5,
       "privacy.email": 1,
       "privacy.payment-card": 1,
       "privacy.phone": 1,
@@ -141,16 +165,19 @@
       "recon.vhost": 1,
       "response.cache": 2,
       "response.cors": 2,
+      "response.directory-listing": 1,
       "response.error": 1,
       "response.error.database": 1,
       "response.error.dotnet": 1,
-      "response.error.java": 1,
-      "response.error.python": 2,
+      "response.error.java": 2,
+      "response.error.nodejs": 1,
+      "response.error.php": 1,
+      "response.error.python": 3,
       "response.error.ruby": 1,
       "response.headers": 6,
       "response.network": 1,
       "response.path": 1,
-      "response.secret": 8,
+      "response.secret": 10,
       "response.source": 1,
       "routing.header-override": 1,
       "routing.host": 4,
@@ -204,488 +231,379 @@
       "grpc": 2,
       "parser": 47,
       "policy": 20,
-      "re2": 225,
+      "re2": 281,
       "reputation": 9,
       "response_policy": 15,
-      "schema": 11,
+      "schema": 12,
       "signature": 1,
       "stateful": 65,
       "token_parser": 20,
       "websocket": 2
     },
     "severity": {
-      "critical": 198,
-      "high": 196,
+      "critical": 226,
+      "high": 220,
       "low": 1,
-      "medium": 60
+      "medium": 65
     }
   },
   "declared_total": 512,
   "duplicate_ids": [],
-  "generated_at_utc": "2026-08-14T06:36:49.441334+00:00",
+  "generated_at_utc": "2026-08-14T06:40:29.537178+00:00",
   "generated_re2_catalog_json": {
     "error": "UnicodeDecodeError: 'utf-8' codec can't decode byte 0xb8 in position 24700: invalid start byte",
-    "parseable": false
+    "ignored": true,
+    "parseable": false,
+    "reason": "the clean corpus is regenerated from the validated YAML bundle"
   },
-  "invalid_rules": [
+  "generated_thai_total": 57,
+  "invalid_rules": [],
+  "invalid_total": 0,
+  "localization_gaps": [
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-FILE-240022",
-      "index": 222
+      "index": 222,
+      "source_description_th": "Apache server-status/server-info",
+      "source_name_th": "Apache server-status/server-info"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-FILE-240023",
-      "index": 223
+      "index": 223,
+      "source_description_th": "Nginx status endpoint",
+      "source_name_th": "Nginx status endpoint"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-FILE-240024",
-      "index": 224
+      "index": 224,
+      "source_description_th": "Go expvar/pprof",
+      "source_name_th": "Go expvar/pprof"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-FILE-240026",
-      "index": 226
+      "index": 226,
+      "source_description_th": "ASP.NET diagnostics/tracing",
+      "source_name_th": "ASP.NET diagnostics/tracing"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-FILE-240027",
-      "index": 227
+      "index": 227,
+      "source_description_th": "Rails development exception endpoint",
+      "source_name_th": "Rails development exception endpoint"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-FILE-240028",
-      "index": 228
+      "index": 228,
+      "source_description_th": "Django debug toolbar",
+      "source_name_th": "Django debug toolbar"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-FILE-240029",
-      "index": 229
+      "index": 229,
+      "source_description_th": "JVM management console",
+      "source_name_th": "JVM management console"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270003",
-      "index": 368
+      "index": 368,
+      "source_description_th": "probe WordPress XML-RPC",
+      "source_name_th": "probe WordPress XML-RPC"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270006",
-      "index": 371
+      "index": 371,
+      "source_description_th": "probe Drupal user login",
+      "source_name_th": "probe Drupal user login"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270007",
-      "index": 372
+      "index": 372,
+      "source_description_th": "Drupal update/install exposure",
+      "source_name_th": "Drupal update/install exposure"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270008",
-      "index": 373
+      "index": 373,
+      "source_description_th": "probe Drupal private/settings",
+      "source_name_th": "probe Drupal private/settings"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270009",
-      "index": 374
+      "index": 374,
+      "source_description_th": "probe Joomla administrator",
+      "source_name_th": "probe Joomla administrator"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270010",
-      "index": 375
+      "index": 375,
+      "source_description_th": "Joomla configuration exposure",
+      "source_name_th": "Joomla configuration exposure"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270011",
-      "index": 376
+      "index": 376,
+      "source_description_th": "Joomla installation directory exposure",
+      "source_name_th": "Joomla installation directory exposure"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270012",
-      "index": 377
+      "index": 377,
+      "source_description_th": "probe Magento admin/downloader",
+      "source_name_th": "probe Magento admin/downloader"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270013",
-      "index": 378
+      "index": 378,
+      "source_description_th": "Magento config exposure",
+      "source_name_th": "Magento config exposure"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270014",
-      "index": 379
+      "index": 379,
+      "source_description_th": "Magento setup/dev tools exposure",
+      "source_name_th": "Magento setup/dev tools exposure"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270018",
-      "index": 383
+      "index": 383,
+      "source_description_th": "Laravel debug/storage exposure",
+      "source_name_th": "Laravel debug/storage exposure"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270019",
-      "index": 384
+      "index": 384,
+      "source_description_th": "Symfony profiler exposure",
+      "source_name_th": "Symfony profiler exposure"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270022",
-      "index": 387
+      "index": 387,
+      "source_description_th": "Spring classloader binding probe",
+      "source_name_th": "Spring classloader binding probe"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270023",
-      "index": 388
+      "index": 388,
+      "source_description_th": "Apache Struts OGNL probe",
+      "source_name_th": "Apache Struts OGNL probe"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270027",
-      "index": 392
+      "index": 392,
+      "source_description_th": "Jenkins script/CLI exposure",
+      "source_name_th": "Jenkins script/CLI exposure"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270029",
-      "index": 394
+      "index": 394,
+      "source_description_th": "Grafana admin/snapshot exposure",
+      "source_name_th": "Grafana admin/snapshot exposure"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270030",
-      "index": 395
+      "index": 395,
+      "source_description_th": "Kibana dev console exposure",
+      "source_name_th": "Kibana dev console exposure"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270031",
-      "index": 396
+      "index": 396,
+      "source_description_th": "Prometheus admin API exposure",
+      "source_name_th": "Prometheus admin API exposure"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270036",
-      "index": 401
+      "index": 401,
+      "source_description_th": "Node.js inspector/debug exposure",
+      "source_name_th": "Node.js inspector/debug exposure"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270037",
-      "index": 402
+      "index": 402,
+      "source_description_th": "Next.js development asset exposure",
+      "source_name_th": "Next.js development asset exposure"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270038",
-      "index": 403
+      "index": 403,
+      "source_description_th": "probe Django admin",
+      "source_name_th": "probe Django admin"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270039",
-      "index": 404
+      "index": 404,
+      "source_description_th": "probe Werkzeug debugger",
+      "source_name_th": "probe Werkzeug debugger"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270040",
-      "index": 405
+      "index": 405,
+      "source_description_th": "Rails info/assets exposure",
+      "source_name_th": "Rails info/assets exposure"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270041",
-      "index": 406
+      "index": 406,
+      "source_description_th": "AWS EC2 metadata endpoint",
+      "source_name_th": "AWS EC2 metadata endpoint"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270042",
-      "index": 407
+      "index": 407,
+      "source_description_th": "Google Compute metadata endpoint",
+      "source_name_th": "Google Compute metadata endpoint"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270043",
-      "index": 408
+      "index": 408,
+      "source_description_th": "Azure instance metadata endpoint",
+      "source_name_th": "Azure instance metadata endpoint"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270044",
-      "index": 409
+      "index": 409,
+      "source_description_th": "Alibaba Cloud metadata endpoint",
+      "source_name_th": "Alibaba Cloud metadata endpoint"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270045",
-      "index": 410
+      "index": 410,
+      "source_description_th": "Oracle Cloud metadata endpoint",
+      "source_name_th": "Oracle Cloud metadata endpoint"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270046",
-      "index": 411
+      "index": 411,
+      "source_description_th": "DigitalOcean metadata endpoint",
+      "source_name_th": "DigitalOcean metadata endpoint"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270047",
-      "index": 412
+      "index": 412,
+      "source_description_th": "AWS access key identifier",
+      "source_name_th": "AWS access key identifier"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270048",
-      "index": 413
+      "index": 413,
+      "source_description_th": "Google API key identifier",
+      "source_name_th": "Google API key identifier"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270049",
-      "index": 414
+      "index": 414,
+      "source_description_th": "GitHub token identifier",
+      "source_name_th": "GitHub token identifier"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270050",
-      "index": 415
+      "index": 415,
+      "source_description_th": "Slack token identifier",
+      "source_name_th": "Slack token identifier"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270051",
-      "index": 416
+      "index": 416,
+      "source_description_th": "private key material",
+      "source_name_th": "private key material"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270052",
-      "index": 417
+      "index": 417,
+      "source_description_th": "Docker daemon API exposure",
+      "source_name_th": "Docker daemon API exposure"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270053",
-      "index": 418
+      "index": 418,
+      "source_description_th": "Kubernetes API exposure",
+      "source_name_th": "Kubernetes API exposure"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270055",
-      "index": 420
+      "index": 420,
+      "source_description_th": "Etcd API exposure",
+      "source_name_th": "Etcd API exposure"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270056",
-      "index": 421
+      "index": 421,
+      "source_description_th": "HashiCorp Vault API exposure",
+      "source_name_th": "HashiCorp Vault API exposure"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270057",
-      "index": 422
+      "index": 422,
+      "source_description_th": "Consul API exposure",
+      "source_name_th": "Consul API exposure"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270058",
-      "index": 423
+      "index": 423,
+      "source_description_th": "Elasticsearch admin API",
+      "source_name_th": "Elasticsearch admin API"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270059",
-      "index": 424
+      "index": 424,
+      "source_description_th": "Redis web gateway command endpoint",
+      "source_name_th": "Redis web gateway command endpoint"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-PLAT-270060",
-      "index": 425
+      "index": 425,
+      "source_description_th": "CI/CD environment/artifact exposure",
+      "source_name_th": "CI/CD environment/artifact exposure"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-RESP-280002",
-      "index": 427
+      "index": 427,
+      "source_description_th": "Java stack trace",
+      "source_name_th": "Java stack trace"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-RESP-280005",
-      "index": 430
+      "index": 430,
+      "source_description_th": "PHP fatal error",
+      "source_name_th": "PHP fatal error"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-RESP-280006",
-      "index": 431
+      "index": 431,
+      "source_description_th": "Python traceback",
+      "source_name_th": "Python traceback"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-RESP-280009",
-      "index": 434
+      "index": 434,
+      "source_description_th": "Node.js stack trace",
+      "source_name_th": "Node.js stack trace"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-RESP-280014",
-      "index": 439
+      "index": 439,
+      "source_description_th": "directory listing",
+      "source_name_th": "directory listing"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-RESP-280023",
-      "index": 448
+      "index": 448,
+      "source_description_th": "database connection string",
+      "source_name_th": "database connection string"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-RESP-280025",
-      "index": 450
+      "index": 450,
+      "source_description_th": "Kubernetes service-account JWT",
+      "source_name_th": "Kubernetes service-account JWT"
     },
     {
-      "errors": [
-        "name_th does not contain Thai text",
-        "description_th does not contain Thai text"
-      ],
       "id": "CWAF-AI-290013",
-      "index": 478
+      "index": 478,
+      "source_description_th": "allowlist model identifier",
+      "source_name_th": "allowlist model identifier"
     }
   ],
-  "invalid_total": 57,
+  "native_thai_total": 455,
   "observed_total": 512,
   "re2": {
     "compile_failures": 0,
@@ -694,13 +612,13 @@
   "source": {
     "bundle_path": "dist/cherry-rules.bundle.yaml",
     "bundle_sha256": "7a793ce09b2d71e51ffe01571320913e5dd36c61d32de54bfce0c319ef67809e",
-    "commit": "ef711d7abb78047d17d7a8f82297636d2fea3df6",
+    "commit": "358db22639a76e812e724dab3fd13fec0e877aea",
     "ref": "recovery/catalog-source-20260814",
     "repository": "paddman/CherryRule",
     "schema_sha256": "baad74395297994ba213f6345624331d0f403984e6487841ccfea4740567f465"
   },
-  "thai_complete_total": 455,
+  "thai_explainable_total": 512,
   "top_level_errors": [],
-  "valid_total": 455,
+  "valid_total": 512,
   "warnings": []
 }
