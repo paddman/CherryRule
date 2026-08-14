@@ -1,0 +1,21 @@
+profile_version: '1.0'
+id: api
+title_th: REST / GraphQL / gRPC API
+description_th: เน้น OpenAPI, JSON schema, token, object authorization, rate และ protocol
+packs:
+- CHERRYRULE-CORE-SEED
+- CHERRYRULE-PROTOCOL-HTTP
+- CHERRYRULE-INPUT-INJECTION
+- CHERRYRULE-SERVER-SIDE
+- CHERRYRULE-IDENTITY-API
+- CHERRYRULE-ABUSE-BOT-BUSINESS
+- CHERRYRULE-RESPONSE-PRIVACY
+- CHERRYRULE-THREAT-INTEL-VIRTUAL-PATCH
+paranoia_level: 2
+inbound_threshold: 8
+outbound_threshold: 7
+global_mode: native
+requirements:
+- OpenAPI document
+- identity mapping
+- route tags

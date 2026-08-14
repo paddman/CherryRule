@@ -1,0 +1,24 @@
+profile_version: '1.0'
+id: strict
+title_th: Strict Production
+description_th: สำหรับ admin portal, payment, government API และระบบที่ schema ชัดเจน
+packs:
+- CHERRYRULE-CORE-SEED
+- CHERRYRULE-PROTOCOL-HTTP
+- CHERRYRULE-INPUT-INJECTION
+- CHERRYRULE-SERVER-SIDE
+- CHERRYRULE-FILES-SECRETS-UPLOAD
+- CHERRYRULE-IDENTITY-API
+- CHERRYRULE-ABUSE-BOT-BUSINESS
+- CHERRYRULE-PLATFORM-CLOUD-DEVOPS
+- CHERRYRULE-RESPONSE-PRIVACY
+- CHERRYRULE-AI-LLM-AGENT
+- CHERRYRULE-THREAT-INTEL-VIRTUAL-PATCH
+paranoia_level: 2
+inbound_threshold: 7
+outbound_threshold: 6
+global_mode: native
+requirements:
+- complete application inventory
+- golden traffic replay
+- rollback automation

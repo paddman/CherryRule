@@ -1,0 +1,49 @@
+schema_version: '1.0'
+catalog_version: 0.1.0
+generated_at: '2026-08-11'
+total_rules: 512
+packs:
+- id: CHERRYRULE-CORE-SEED
+  slug: 00-core-seed
+  rules: 21
+  file: packs/00-core-seed.yaml
+- id: CHERRYRULE-PROTOCOL-HTTP
+  slug: 10-protocol-http
+  rules: 45
+  file: packs/10-protocol-http.yaml
+- id: CHERRYRULE-INPUT-INJECTION
+  slug: 20-input-injection
+  rules: 75
+  file: packs/20-input-injection.yaml
+- id: CHERRYRULE-SERVER-SIDE
+  slug: 30-server-side-execution
+  rules: 60
+  file: packs/30-server-side-execution.yaml
+- id: CHERRYRULE-FILES-SECRETS-UPLOAD
+  slug: 40-files-secrets-upload
+  rules: 50
+  file: packs/40-files-secrets-upload.yaml
+- id: CHERRYRULE-IDENTITY-API
+  slug: 50-identity-api
+  rules: 65
+  file: packs/50-identity-api.yaml
+- id: CHERRYRULE-ABUSE-BOT-BUSINESS
+  slug: 60-abuse-bot-business
+  rules: 50
+  file: packs/60-abuse-bot-business.yaml
+- id: CHERRYRULE-PLATFORM-CLOUD-DEVOPS
+  slug: 70-platform-cloud-devops
+  rules: 60
+  file: packs/70-platform-cloud-devops.yaml
+- id: CHERRYRULE-RESPONSE-PRIVACY
+  slug: 80-response-privacy
+  rules: 40
+  file: packs/80-response-privacy.yaml
+- id: CHERRYRULE-AI-LLM-AGENT
+  slug: 90-ai-llm-agent
+  rules: 31
+  file: packs/90-ai-llm-agent.yaml
+- id: CHERRYRULE-THREAT-INTEL-VIRTUAL-PATCH
+  slug: 99-threat-intel-virtual-patch
+  rules: 15
+  file: packs/99-threat-intel-virtual-patch.yaml

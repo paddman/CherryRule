@@ -1,0 +1,27 @@
+profile_version: '1.0'
+id: learning
+title_th: Learning / Detect Only
+description_th: เปิด telemetry ทั้งหมดแต่ไม่ block ธุรกิจ เหมาะกับการ replay traffic และหาค่า exclusion
+packs:
+- CHERRYRULE-CORE-SEED
+- CHERRYRULE-PROTOCOL-HTTP
+- CHERRYRULE-INPUT-INJECTION
+- CHERRYRULE-SERVER-SIDE
+- CHERRYRULE-FILES-SECRETS-UPLOAD
+- CHERRYRULE-IDENTITY-API
+- CHERRYRULE-ABUSE-BOT-BUSINESS
+- CHERRYRULE-PLATFORM-CLOUD-DEVOPS
+- CHERRYRULE-RESPONSE-PRIVACY
+- CHERRYRULE-AI-LLM-AGENT
+- CHERRYRULE-THREAT-INTEL-VIRTUAL-PATCH
+paranoia_level: 1
+inbound_threshold: 999
+outbound_threshold: 999
+global_mode: score
+overrides:
+- match:
+    engine: catalog
+  mode: block
+- match:
+    engine: deployment
+  mode: block

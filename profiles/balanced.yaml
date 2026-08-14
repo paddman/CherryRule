@@ -1,0 +1,26 @@
+profile_version: '1.0'
+id: balanced
+title_th: Balanced Production
+description_th: 'ค่าตั้งต้น production: precise protocol/secret/exploit block, injection สะสมคะแนน, bot challenge'
+packs:
+- CHERRYRULE-CORE-SEED
+- CHERRYRULE-PROTOCOL-HTTP
+- CHERRYRULE-INPUT-INJECTION
+- CHERRYRULE-SERVER-SIDE
+- CHERRYRULE-FILES-SECRETS-UPLOAD
+- CHERRYRULE-IDENTITY-API
+- CHERRYRULE-ABUSE-BOT-BUSINESS
+- CHERRYRULE-PLATFORM-CLOUD-DEVOPS
+- CHERRYRULE-RESPONSE-PRIVACY
+- CHERRYRULE-THREAT-INTEL-VIRTUAL-PATCH
+paranoia_level: 1
+inbound_threshold: 10
+outbound_threshold: 8
+global_mode: native
+overrides:
+- match:
+    category_prefix: platform.
+  mode: score
+- match:
+    confidence: low
+  mode: score

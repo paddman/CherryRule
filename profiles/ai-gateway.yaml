@@ -1,0 +1,23 @@
+profile_version: '1.0'
+id: ai-gateway
+title_th: AI / LLM / RAG / Agent Gateway
+description_th: เพิ่ม token quota, model allowlist, RAG tenant binding, tool schema, approval gate และ SSRF sandbox
+packs:
+- CHERRYRULE-PROTOCOL-HTTP
+- CHERRYRULE-INPUT-INJECTION
+- CHERRYRULE-SERVER-SIDE
+- CHERRYRULE-FILES-SECRETS-UPLOAD
+- CHERRYRULE-IDENTITY-API
+- CHERRYRULE-ABUSE-BOT-BUSINESS
+- CHERRYRULE-RESPONSE-PRIVACY
+- CHERRYRULE-AI-LLM-AGENT
+- CHERRYRULE-THREAT-INTEL-VIRTUAL-PATCH
+paranoia_level: 2
+inbound_threshold: 8
+outbound_threshold: 6
+global_mode: native
+requirements:
+- tenant identity
+- model registry
+- tool registry
+- human approval service

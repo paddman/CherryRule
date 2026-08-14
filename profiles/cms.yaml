@@ -1,0 +1,25 @@
+profile_version: '1.0'
+id: cms
+title_th: CMS / WordPress / Drupal / Joomla / Magento
+description_th: เปิด platform telemetry แต่ไม่ block path ปกติของ CMS; ใช้ auth/rate/virtual patch แทน
+packs:
+- CHERRYRULE-CORE-SEED
+- CHERRYRULE-PROTOCOL-HTTP
+- CHERRYRULE-INPUT-INJECTION
+- CHERRYRULE-SERVER-SIDE
+- CHERRYRULE-FILES-SECRETS-UPLOAD
+- CHERRYRULE-IDENTITY-API
+- CHERRYRULE-ABUSE-BOT-BUSINESS
+- CHERRYRULE-PLATFORM-CLOUD-DEVOPS
+- CHERRYRULE-RESPONSE-PRIVACY
+- CHERRYRULE-THREAT-INTEL-VIRTUAL-PATCH
+paranoia_level: 1
+inbound_threshold: 10
+outbound_threshold: 8
+global_mode: native
+required_variables:
+- application.technology_profile
+overrides:
+- match:
+    category_prefix: platform.
+  mode: profile-aware
