@@ -23,7 +23,7 @@ jobs:
       - name: Install validators
         run: python3 -m pip install -r requirements-dev.txt google-re2
 
-      - name: Validate every rule and build a clean corpus
+      - name: Validate every rule and build a clean Thai corpus
         id: validate
         continue-on-error: true
         run: python3 tools/audit_catalog.py
@@ -40,12 +40,12 @@ jobs:
           if git diff --cached --quiet; then
             echo "audit artifacts unchanged"
           else
-            git commit -m "chore: add validated CherryRule corpus [skip ci]"
+            git commit -m "chore: regenerate validated Thai CherryRule corpus [skip ci]"
             git push origin HEAD
           fi
 
       - name: Enforce audit result
         if: steps.validate.outcome != 'success'
         run: |
-          echo "CherryRule catalog contains invalid rules. See audit/catalog-validation.json." >&2
+          echo "CherryRule catalog contains structural or RE2 errors. See audit/catalog-validation.json." >&2
           exit 1
